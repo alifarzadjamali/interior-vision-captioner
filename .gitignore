@@ -8,9 +8,6 @@ build/
 # Virtual environments
 .venv/
 venv/
-# Jupyter
-.ipynb_checkpoints/
-
 # Environment files
 .env
 
@@ -20,9 +17,13 @@ venv/
 # OS files
 .DS_Store
 
-# Data
-data/raw/*
-!data/raw/.gitkeep
+# Downloaded data
+data/images/*
+!data/images/.gitkeep
+data/references.jsonl
 
 data/outputs/*
 !data/outputs/.gitkeep
+
+# Model downloads
+.cache/
