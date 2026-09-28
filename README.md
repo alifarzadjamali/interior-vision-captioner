@@ -1,237 +1,134 @@
-# Simple Image Captioning (SIC)
+# Room Captioner
 
-This project is a modular image captioning pipeline built in Python using vision-language models.
+Turn a folder of interior photos into useful captions, then check whether a small domain prompt actually helps.
 
-The goal is to understand how multimodal models work in practice and to build a clean, extensible system that can later support multiple models, evaluation, and deployment.
+This repo is deliberately compact. There is one public dataset, one public model, four commands, and no hidden state to untangle. You can read the whole pipeline in a few minutes and swap in your own room photos whenever you are ready.
 
----
+![The room captioning workflow](assets/workflow.svg)
 
-## What this project does
+## What happens here?
 
-This project implements an end-to-end pipeline:
+We start with [ellljoy/interior-design](https://huggingface.co/datasets/ellljoy/interior-design), a public Apache 2.0 dataset with 30 living-room images and short reference captions. We caption those rooms with [Salesforce BLIP Base](https://huggingface.co/Salesforce/blip-image-captioning-base), released under BSD 3-Clause.
 
-1. Load images from a directory  
-2. Generate captions using a vision-language model (Florence-2)  
-3. Extract structured fashion-related features from captions  
-4. Process multiple images in batch  
-5. Save outputs in JSON and CSV formats  
-6. Support switching between different models (extensible architecture)  
+The same photos go through the model twice:
 
----
+| Run | Text given to the model | Why it is here |
+| --- | --- | --- |
+| Baseline | none | Shows what the model says on its own |
+| Guided | `a living room with` | Fits the model to this dataset's room type |
 
-## Current capabilities
+After that, a small evaluator lines both runs up with the dataset captions. It reports word precision, recall, F1, caption length, interior terms, and how often captions are unique. These are quick signals for comparing runs, not a final verdict on writing quality. Read a few captions yourself before deciding which setup is better.
 
-### Image Captioning
-- Uses **Florence-2 (Hugging Face Transformers)**
-- Supports prompt-based captioning tasks
-- Modular model interface for future models
-
-### Feature Extraction
-Extracts structured information from captions:
-- colors  
-- garments  
-- upper wear / lower wear / footwear  
-- accessories  
-- materials  
-- style words  
-- **garment-color pairs** (e.g., "blue shirt", "black shoes")  
-
-### Batch Processing
-- Processes all images in `data/raw/`  
-- Supports:
-  - `.png`
-  - `.jpg`
-  - `.jpeg`
-- Generates:
-  - `batch_results.json`
-  - `batch_results.csv`
-
-### Model Switching (Core Design Feature)
-- Central model registry  
-- Easy to add new models (e.g., Qwen-VL later)  
-- Single interface for all models  
-
----
-
-## Example output
+Here is the shape of one saved result:
 
 ```json
 {
-  "image_path": "../data/raw/sample.png",
-  "caption": "A man is wearing a blue shirt, a brown jacket, blue jeans, and black shoes.",
-  "features": {
-    "colors": ["blue", "brown", "black"],
-    "garments": ["shirt", "jacket", "jeans", "shoes"],
-    "upper_wear": ["shirt", "jacket"],
-    "lower_wear": ["jeans"],
-    "footwear": ["shoes"],
-    "accessories": [],
-    "materials": [],
-    "style_words": [],
-    "item_color_pairs": [
-      {"item": "shirt", "color": "blue"},
-      {"item": "jacket", "color": "brown"},
-      {"item": "jeans", "color": "blue"},
-      {"item": "shoes", "color": "black"}
-    ]
-  }
+  "image": "room_000.jpg",
+  "caption": "a living room with a dining table and chairs",
+  "mode": "guided",
+  "prompt": "a living room with",
+  "model": "Salesforce/blip-image-captioning-base"
 }
 ```
 
----
+## Try it
 
-## Project structure
-
-```text
-SIC/
-├── app/
-├── data/
-│   ├── raw/                # input images
-│   └── outputs/            # results (JSON / CSV)
-├── notebooks/
-│   └── 01_setup_and_first_caption.ipynb
-├── src/
-│   ├── captioning.py       # model-agnostic interface
-│   ├── feature_extraction.py
-│   ├── batch_pipeline.py
-│   └── models/
-│       ├── florence.py     # Florence-2 implementation
-│       └── registry.py     # model registry
-├── pyproject.toml
-├── uv.lock
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Technologies used
-
-- Python  
-- PyTorch  
-- Hugging Face Transformers  
-- Florence-2 vision-language model  
-- Jupyter Notebook (VS Code)  
-- uv (package manager)  
-- pandas (for CSV export)  
-
----
-
-## Setup
-
-Clone the repository and install dependencies:
+You need Python 3.10 to 3.12 and [uv](https://docs.astral.sh/uv/). A CUDA GPU makes captioning faster, but the code also runs on CPU.
 
 ```bash
+git clone <your-repo-url>
+cd simple-image-captioner
 uv sync
 ```
 
-Run Jupyter Notebook:
+The model is about 1 GB and downloads on the first captioning run. It is cached after that.
+
+### 1. Get a few rooms
 
 ```bash
-jupyter notebook
+uv run room-captioner download --limit 12
 ```
 
-Open:
+This creates `data/images/` and `data/references.jsonl`. Use `--limit 30` when you want the full dataset.
 
-```
-notebooks/01_setup_and_first_caption.ipynb
-```
+### 2. Make the plain captions
 
----
-
-## Usage
-
-### Single image
-
-```python
-from src.captioning import load_caption_model, generate_caption
-
-loaded_model = load_caption_model(model_key="florence2")
-
-result = generate_caption(
-    image_path="../data/raw/sample.png",
-    loaded_model=loaded_model,
-)
-
-print(result["caption"])
+```bash
+uv run room-captioner caption --mode baseline
 ```
 
----
+The results land in `data/outputs/baseline.jsonl`.
 
-### Batch processing
+### 3. Add the interior hint
 
-```python
-from src.batch_pipeline import process_images_batch
-
-results = process_images_batch(
-    data_dir="../data/raw",
-    output_json_path="../data/outputs/batch_results.json",
-    output_csv_path="../data/outputs/batch_results.csv",
-    model_key="florence2"
-)
+```bash
+uv run room-captioner caption --mode guided
 ```
 
----
+Now you also have `data/outputs/guided.jsonl`. Open both files and compare a couple of matching lines. That quick spot check is often more revealing than one score.
 
-## Model switching
+### 4. Compare the runs
 
-Supported models:
-
-```python
-from src.models.registry import get_supported_models
-
-print(get_supported_models())
+```bash
+uv run room-captioner compare
 ```
 
-Example:
+The terminal shows the averages and the full report is saved to `data/outputs/comparison.json`. Positive values under `change` mean the guided run scored higher for that measurement.
 
-```python
-loaded_model = load_caption_model(model_key="florence2")
+You can inspect either run on its own too:
+
+```bash
+uv run room-captioner evaluate data/outputs/guided.jsonl
 ```
 
-Future models (planned):
-- Qwen2-VL  
-- Qwen2.5-VL  
-- other vision-language models  
+## Use your own photos
 
----
+Drop JPG, PNG, or WebP files into a folder and point the caption command at it:
 
-## Notes
+```bash
+uv run room-captioner caption \
+  --images path/to/my/rooms \
+  --mode guided \
+  --output data/outputs/my_rooms.jsonl
+```
 
-- `pyproject.toml` and `uv.lock` are the main dependency sources  
-- `requirements.txt` is generated for compatibility  
-- `transformers` is pinned for Florence-2 compatibility  
-- Florence-2 uses fixed task prompts (e.g., `<MORE_DETAILED_CAPTION>`)  
+References are only needed for `evaluate` and `compare`. Captioning your own folder works without them.
 
----
+For another kind of room, supply your own caption opening:
 
-## Current limitations
+```bash
+uv run room-captioner caption --images path/to/kitchens --prompt "a kitchen with"
+```
 
-- Feature extraction is rule-based  
-- Limited understanding of complex descriptions  
-- No fine-tuning yet  
-- No evaluation metrics implemented yet  
-- Florence prompt flexibility is limited for custom instructions  
+Keep it short. BLIP treats the prompt as the beginning of the caption, so a long instruction usually makes the result worse rather than smarter. The built-in modes live in `room_captioner/pipeline.py` if you want to keep a new preset.
 
----
+## The code map
 
-## Next steps
+```text
+room_captioner/
+├── cli.py          commands and their arguments
+├── data.py         dataset download and local file names
+├── model.py        BLIP loading and one-image captioning
+├── pipeline.py     folder processing and JSONL output
+└── evaluation.py   readable comparison metrics
+tests/              fast tests that do not download a model
+main.py             a plain Python entry point
+```
 
-- Add evaluation metrics for captions and features  
-- Compare multiple models (Florence vs Qwen)  
-- Improve feature extraction (LLM-based parsing)  
-- Build a simple user interface (Streamlit or API)  
-- Fine-tune models on fashion datasets
-- This model will be integrated in fashion compatibility domain 
+Each module has one job. `main.py` is kept for anyone who prefers `uv run python main.py ...`; it accepts the same commands as `room-captioner`.
 
----
+## A sensible next experiment
 
-## Project goal
+Change one thing at a time. Try a shorter prompt, add a few carefully written references, or replace the model behind `BlipCaptioner`. Save each run under a new name and compare it with the same image set. That keeps the result explainable and saves you from guessing why a caption changed.
 
-This project is a foundation for building:
+## Checks
 
-- multimodal fashion recommendation systems  
-- explainable outfit compatibility models  
-- AI systems that combine image and text understanding  
+The tests cover file ordering, JSONL output, token cleanup, and metric calculations. They use a tiny stand-in captioner, so they finish without network access or model weights.
 
-The focus is on clean architecture, modular design, and practical understanding of vision-language models.
+```bash
+uv run pytest
+```
+
+## A couple of honest limits
+
+BLIP Base is approachable and easy to run, but it can miss fine materials, design styles, and spatial relationships. The dataset captions are short, so overlap scores can also punish a perfectly reasonable phrase that uses different words. Treat this repo as a clear baseline and experiment loop, not a claim that room captioning is solved.

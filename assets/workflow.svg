@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="280" viewBox="0 0 1120 280" role="img" aria-labelledby="title desc">
+  <title id="title">Interior captioning workflow</title>
+  <desc id="desc">A room image moves through BLIP captioning, comparison, and review.</desc>
+  <rect width="1120" height="280" rx="24" fill="#f5f1e8"/>
+  <g font-family="Arial, sans-serif" fill="#253331">
+    <text x="56" y="48" font-size="18" font-weight="700" letter-spacing="1">ONE SMALL, CHECKABLE LOOP</text>
+    <rect x="56" y="76" width="220" height="150" rx="16" fill="#d7e3dd"/>
+    <rect x="80" y="100" width="172" height="84" rx="6" fill="#fbfaf6"/>
+    <rect x="94" y="128" width="66" height="42" rx="5" fill="#b56f52"/>
+    <rect x="168" y="116" width="68" height="54" rx="5" fill="#7f9b8f"/>
+    <circle cx="113" cy="116" r="10" fill="#d5b765"/>
+    <text x="166" y="211" text-anchor="middle" font-size="16">room images</text>
+    <path d="M296 151h56" stroke="#253331" stroke-width="3"/>
+    <path d="m344 143 10 8-10 8" fill="none" stroke="#253331" stroke-width="3"/>
+    <rect x="374" y="76" width="220" height="150" rx="16" fill="#253331"/>
+    <text x="484" y="126" text-anchor="middle" font-size="24" font-weight="700" fill="#fff">BLIP</text>
+    <text x="484" y="158" text-anchor="middle" font-size="15" fill="#d7e3dd">plain + guided captions</text>
+    <text x="484" y="188" text-anchor="middle" font-size="14" fill="#d5b765">one model, two runs</text>
+    <path d="M614 151h56" stroke="#253331" stroke-width="3"/>
+    <path d="m662 143 10 8-10 8" fill="none" stroke="#253331" stroke-width="3"/>
+    <rect x="692" y="76" width="164" height="150" rx="16" fill="#d5b765"/>
+    <text x="774" y="130" text-anchor="middle" font-size="20" font-weight="700">compare</text>
+    <text x="774" y="160" text-anchor="middle" font-size="15">word overlap</text>
+    <text x="774" y="184" text-anchor="middle" font-size="15">room details</text>
+    <path d="M876 151h56" stroke="#253331" stroke-width="3"/>
+    <path d="m924 143 10 8-10 8" fill="none" stroke="#253331" stroke-width="3"/>
+    <rect x="954" y="76" width="112" height="150" rx="16" fill="#b56f52"/>
+    <text x="1010" y="140" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">review</text>
+    <text x="1010" y="170" text-anchor="middle" font-size="14" fill="#fff">keep what</text>
+    <text x="1010" y="191" text-anchor="middle" font-size="14" fill="#fff">works</text>
+  </g>
+</svg>
