@@ -6,6 +6,20 @@ This repo is deliberately compact. There is one public dataset, one public model
 
 ![The room captioning workflow](assets/workflow.svg)
 
+## One room, two captions
+
+<img src="assets/example-room.jpg" alt="A bright living room with a dining table, chairs, sofas, and a television" width="760">
+
+| Version | Caption |
+| --- | --- |
+| Baseline | `a living room filled with furniture and a flat screen tv` |
+| Guided | `a living room with a dining table and chairs` |
+| Dataset reference | `a living room with a dining table and chairs` |
+
+The baseline notices the room and television, but falls back to the vague word "furniture." The short prompt gets a more useful caption by naming the dining area and chairs. This is exactly the kind of change the comparison step is meant to catch.
+
+<sub>Image and reference caption from the Apache 2.0 licensed <a href="https://huggingface.co/datasets/ellljoy/interior-design">ellljoy/interior-design</a> dataset.</sub>
+
 ## What happens here?
 
 We start with [ellljoy/interior-design](https://huggingface.co/datasets/ellljoy/interior-design), a public Apache 2.0 dataset with 30 living-room images and short reference captions. We caption those rooms with [Salesforce BLIP Base](https://huggingface.co/Salesforce/blip-image-captioning-base), released under BSD 3-Clause.
