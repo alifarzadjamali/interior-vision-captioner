@@ -1,5 +1,7 @@
 # Room Captioner
 
+The original code and documentation are available under the [MIT License](LICENSE). `assets/example-room.jpg` and its reference caption come from the [ellljoy/interior-design dataset](https://huggingface.co/datasets/ellljoy/interior-design) and remain under [Apache License 2.0](THIRD_PARTY_LICENSES/Apache-2.0.txt); they are not relicensed as MIT.
+
 Turn a folder of interior photos into useful captions, then check whether a small domain prompt actually helps.
 
 This repo is deliberately compact. There is one public dataset, one public model, four commands, and no hidden state to untangle. You can read the whole pipeline in a few minutes and swap in your own room photos whenever you are ready.
